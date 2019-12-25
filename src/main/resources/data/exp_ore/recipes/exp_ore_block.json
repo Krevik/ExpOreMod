@@ -1,0 +1,25 @@
+{
+  "type": "crafting_shaped",
+  "pattern": [
+    "XXX", 
+	"YYY", 
+	"AZA"
+  ],
+  "key": {
+    "X": {
+      "item": "minecraft:coal"
+    },
+	"Y": {
+      "item": "minecraft:iron_ingot"
+    },
+	"A": {
+      "item": "minecraft:gold_ingot"
+    },
+	"Z": {
+      "item": "minecraft:diamond"
+    }
+  },
+  "result": {
+    "item": "exp_ore:block_exp_ore"
+  }
+}
