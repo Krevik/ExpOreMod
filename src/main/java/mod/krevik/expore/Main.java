@@ -10,6 +10,7 @@ import net.minecraft.item.crafting.RecipeManager;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.biome.Biome;
+import net.minecraft.world.biome.DefaultBiomeFeatures;
 import net.minecraft.world.biome.PlainsBiome;
 import net.minecraft.world.gen.GenerationStage;
 import net.minecraft.world.gen.feature.Feature;
@@ -79,7 +80,7 @@ public class Main {
         if(should_Ore_Generate) {
             for (BiomeManager.BiomeType biomeType : BiomeManager.BiomeType.values()) {
                 for (BiomeManager.BiomeEntry biomeEntry : BiomeManager.getBiomes(biomeType)) {
-                    biomeEntry.biome.addFeature(GenerationStage.Decoration.UNDERGROUND_ORES, Feature.ORE.func_225566_b_(new OreFeatureConfig(OreFeatureConfig.FillerBlockType.NATURAL_STONE, Main.BLOCK_EXP_ORE.getDefaultState(), 17)).func_227228_a_(Placement.COUNT_RANGE.func_227446_a_(new CountRangeConfig(veins_Per_Chunk, 0, 0, maximum_Ore_Height))));
+                    biomeEntry.biome.addFeature(GenerationStage.Decoration.UNDERGROUND_ORES, Feature.ORE.withConfiguration(new OreFeatureConfig(OreFeatureConfig.FillerBlockType.NATURAL_STONE, Main.BLOCK_EXP_ORE.getDefaultState(), 17)).withPlacement(Placement.COUNT_RANGE.configure(new CountRangeConfig(veins_Per_Chunk, 0, 0, maximum_Ore_Height))));
                 }
             }
         }
