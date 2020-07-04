@@ -1,0 +1,16 @@
+[
+{
+  "modid": "exp_ore",
+  "name": "Exp Ore Block",
+  "description": "Simple mod that adds exp ore",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["Krevik"],
+  "credits": "Kathairis Dev Team",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]

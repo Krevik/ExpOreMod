@@ -1,0 +1,6 @@
+{
+  "parent": "block/cube_all",
+  "textures": {
+    "all": "exp_ore:block/block_exp_ore"
+  }
+}
