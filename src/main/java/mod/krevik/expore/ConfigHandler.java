@@ -60,13 +60,13 @@ public class ConfigHandler {
             builder.push("general");
             minimum_Exp_From_Ore = builder.comment("Defines minimum exp that the ore can drop")
                     .translation("config.expore.minimum_exp_from_ore")
-                    .defineInRange("minimum_exp_from_ore", 500, 1, 100000);
+                    .defineInRange("minimum_exp_from_ore", 10, 1, 100000);
             builder.pop();
 
             builder.push("general");
             maximum_Exp_From_Ore = builder.comment("Defines maximum exp that the ore can drop")
                     .translation("config.expore.maximum_exp_from_ore")
-                    .defineInRange("maximum_exp_from_ore", 1500, 1, 300000);
+                    .defineInRange("maximum_exp_from_ore", 200, 1, 300000);
             builder.pop();
 
             builder.push("general");
