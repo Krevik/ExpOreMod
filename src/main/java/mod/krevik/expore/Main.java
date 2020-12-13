@@ -98,7 +98,9 @@ public class Main {
                 .withPlacement(Placement.DEPTH_AVERAGE.configure(new DepthAverageConfig(maximum_Ore_Height/2, maximum_Ore_Height/2))
                         .func_242730_a(FeatureSpread.func_242252_a(1))
                         .square());
-        event.getGeneration().withFeature(GenerationStage.Decoration.UNDERGROUND_ORES, ORE_EXP);
+        if(Main.should_Ore_Generate) {
+            event.getGeneration().withFeature(GenerationStage.Decoration.UNDERGROUND_ORES, ORE_EXP);
+        }
     }
 
 
