@@ -13,6 +13,7 @@ import net.minecraft.item.ItemGroup;
 import net.minecraft.item.crafting.RecipeManager;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.RegistryKey;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.util.registry.Registry;
@@ -69,19 +70,30 @@ public class Main {
     public static final String VERSION = "@VERSION@";
 
     public static final Block BLOCK_EXP_ORE = new BlockExpOre();
-    public static int veins_Per_Chunk;
-    public static int minimum_Vein_Size;
-    public static int maximum_Vein_Size;
-    public static int minimum_Exp_From_Ore;
-    public static int maximum_Exp_From_Ore;
-    public static int maximum_Ore_Height;
-    public static boolean should_Ore_Generate;
+    public static int veins_Per_Chunk = ConfigHandler.CONFIG.veins_Per_Chunk.get();
+    public static int minimum_Vein_Size = ConfigHandler.CONFIG.minimum_Vein_Size.get();
+    public static int maximum_Vein_Size = ConfigHandler.CONFIG.maximum_Vein_Size.get();
+    public static int minimum_Exp_From_Ore = ConfigHandler.CONFIG.minimum_Exp_From_Ore.get();
+    public static int maximum_Exp_From_Ore = ConfigHandler.CONFIG.maximum_Exp_From_Ore.get();
+    public static int maximum_Ore_Height = ConfigHandler.CONFIG.maximum_Ore_Height.get();
+    public static boolean should_Ore_Generate = ConfigHandler.CONFIG.should_Ore_Generate.get();
     public static boolean should_Add_Recipe;
+
+    public static ConfiguredFeature<?, ?> EXP_ORE = Feature.ORE.withConfiguration(new OreFeatureConfig(OreFeatureConfig.FillerBlockType.BASE_STONE_OVERWORLD, Main.BLOCK_EXP_ORE.getDefaultState(), MathHelper.nextInt(new Random(),minimum_Vein_Size,maximum_Vein_Size)))
+            .withPlacement(Placement.DEPTH_AVERAGE.configure(new DepthAverageConfig(maximum_Ore_Height/2, maximum_Ore_Height/2))
+                    .func_242730_a(FeatureSpread.func_242252_a(1))
+                    .square());
+
+    public static void registerConfiguredFeatures() {
+        Registry<ConfiguredFeature<?, ?>> registry = WorldGenRegistries.CONFIGURED_FEATURE;
+        Registry.register(registry, new ResourceLocation(Main.MODID, "exp_ore"), EXP_ORE);
+    }
 
     public Main() {
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ConfigHandler.CONFIG_SPEC);
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
+        modEventBus.addListener(this::setup);
 
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::enqueueIMC);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::processIMC);
@@ -89,17 +101,19 @@ public class Main {
 
         MinecraftForge.EVENT_BUS.register(this);
         forgeBus.addListener(EventPriority.HIGH, this::bindFeatureToBiomes);
+    }
 
+    public void setup(final FMLCommonSetupEvent event)
+    {
+        event.enqueueWork(() -> {
+            Main.registerConfiguredFeatures();
+        });
     }
 
     @SubscribeEvent
     public void bindFeatureToBiomes(final BiomeLoadingEvent event){
-        ConfiguredFeature<?, ?> ORE_EXP =  Feature.ORE.withConfiguration(new OreFeatureConfig(OreFeatureConfig.FillerBlockType.BASE_STONE_OVERWORLD, Main.BLOCK_EXP_ORE.getDefaultState(), MathHelper.nextInt(new Random(),minimum_Vein_Size,maximum_Vein_Size)))
-                .withPlacement(Placement.DEPTH_AVERAGE.configure(new DepthAverageConfig(maximum_Ore_Height/2, maximum_Ore_Height/2))
-                        .func_242730_a(FeatureSpread.func_242252_a(1))
-                        .square());
         if(Main.should_Ore_Generate) {
-            event.getGeneration().withFeature(GenerationStage.Decoration.UNDERGROUND_ORES, ORE_EXP);
+            event.getGeneration().withFeature(GenerationStage.Decoration.UNDERGROUND_ORES, EXP_ORE);
         }
     }
 
