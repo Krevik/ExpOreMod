@@ -1,36 +1,20 @@
 package mod.krevik.expore;
 
-import com.google.common.collect.Lists;
-import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.recipebook.RecipeList;
-import net.minecraft.client.gui.screen.BiomeGeneratorTypeScreens;
-import net.minecraft.client.world.DimensionRenderInfo;
-import net.minecraft.data.BiomeProvider;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.crafting.RecipeManager;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.registry.WorldGenRegistries;
-import net.minecraft.world.Dimension;
-import net.minecraft.world.biome.*;
-import net.minecraft.world.biome.provider.OverworldBiomeProvider;
-import net.minecraft.world.gen.DimensionSettings;
-import net.minecraft.world.gen.GenerationStage;
-import net.minecraft.world.gen.feature.ConfiguredFeature;
-import net.minecraft.world.gen.feature.Feature;
-import net.minecraft.world.gen.feature.FeatureSpread;
-import net.minecraft.world.gen.feature.OreFeatureConfig;
-import net.minecraft.world.gen.layer.LayerUtil;
-import net.minecraft.world.gen.placement.DepthAverageConfig;
-import net.minecraft.world.gen.placement.Placement;
-import net.minecraft.world.gen.placement.TopSolidRangeConfig;
+
+import com.google.common.collect.ImmutableList;
+import net.minecraft.data.BuiltinRegistries;
+import net.minecraft.data.worldgen.Features;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.levelgen.GenerationStep;
+import net.minecraft.world.level.levelgen.VerticalAnchor;
+import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
+import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.world.BiomeGenerationSettingsBuilder;
 import net.minecraftforge.event.RegistryEvent;
@@ -41,17 +25,17 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
-import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fmlserverevents.FMLServerStartingEvent;
 import net.minecraftforge.registries.IForgeRegistry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import net.minecraft.core.Registry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,27 +54,23 @@ public class Main {
     public static final String VERSION = "@VERSION@";
 
     public static final Block BLOCK_EXP_ORE = new BlockExpOre();
-    public static int veins_Per_Chunk = ConfigHandler.CONFIG.veins_Per_Chunk.get();
-    public static int minimum_Vein_Size = ConfigHandler.CONFIG.minimum_Vein_Size.get();
-    public static int maximum_Vein_Size = ConfigHandler.CONFIG.maximum_Vein_Size.get();
-    public static int minimum_Exp_From_Ore = ConfigHandler.CONFIG.minimum_Exp_From_Ore.get();
-    public static int maximum_Exp_From_Ore = ConfigHandler.CONFIG.maximum_Exp_From_Ore.get();
-    public static int maximum_Ore_Height = ConfigHandler.CONFIG.maximum_Ore_Height.get();
-    public static boolean should_Ore_Generate = ConfigHandler.CONFIG.should_Ore_Generate.get();
-    public static boolean should_Add_Recipe;
-
-    public static ConfiguredFeature<?, ?> EXP_ORE = Feature.ORE.withConfiguration(new OreFeatureConfig(OreFeatureConfig.FillerBlockType.BASE_STONE_OVERWORLD, Main.BLOCK_EXP_ORE.getDefaultState(), MathHelper.nextInt(new Random(),minimum_Vein_Size,maximum_Vein_Size)))
-            .withPlacement(Placement.DEPTH_AVERAGE.configure(new DepthAverageConfig(maximum_Ore_Height/2, maximum_Ore_Height/2))
-                    .func_242730_a(FeatureSpread.func_242252_a(1))
-                    .square());
+    public static int veins_Per_Chunk = ConfigHandler.VEINS_PER_CHUNK.get();
+    public static int Vein_Size = ConfigHandler.ORE_SIZE.get();
+    public static int minimum_Exp_From_Ore = ConfigHandler.MIN_ORE_EXP.get();
+    public static int maximum_Exp_From_Ore = ConfigHandler.MAX_ORE_EXP.get();
+    public static int maximum_Ore_Height = ConfigHandler.MAX_ORE_HEIGHT.get();
+    public static boolean should_Ore_Generate = ConfigHandler.SHOULD_GENERATE_ORE.get();
+    public static final ImmutableList<OreConfiguration.TargetBlockState> EXP_ORE_TARGET_LIST = ImmutableList.of(OreConfiguration.target(OreConfiguration.Predicates.STONE_ORE_REPLACEABLES, BLOCK_EXP_ORE.defaultBlockState()), OreConfiguration.target(OreConfiguration.Predicates.DEEPSLATE_ORE_REPLACEABLES, BLOCK_EXP_ORE.defaultBlockState()));
+    public static final ConfiguredFeature<?, ?> EXP_ORE_FEATURE = Feature.ORE.configured(new OreConfiguration(EXP_ORE_TARGET_LIST, Vein_Size)).rangeUniform(VerticalAnchor.bottom(), VerticalAnchor.belowTop(maximum_Ore_Height)).squared().count(veins_Per_Chunk);
 
     public static void registerConfiguredFeatures() {
-        Registry<ConfiguredFeature<?, ?>> registry = WorldGenRegistries.CONFIGURED_FEATURE;
-        Registry.register(registry, new ResourceLocation(Main.MODID, "exp_ore"), EXP_ORE);
+        Registry<ConfiguredFeature<?, ?>> registry = BuiltinRegistries.CONFIGURED_FEATURE;
+        Registry.register(registry, new ResourceLocation(Main.MODID, "exp_ore"), EXP_ORE_FEATURE);
     }
 
     public Main() {
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ConfigHandler.CONFIG_SPEC);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ConfigHandler.SPEC);
+
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
         modEventBus.addListener(this::setup);
@@ -113,7 +93,7 @@ public class Main {
     @SubscribeEvent
     public void bindFeatureToBiomes(final BiomeLoadingEvent event){
         if(Main.should_Ore_Generate) {
-            event.getGeneration().withFeature(GenerationStage.Decoration.UNDERGROUND_ORES, EXP_ORE);
+            event.getGeneration().addFeature(GenerationStep.Decoration.UNDERGROUND_ORES, EXP_ORE_FEATURE);
         }
     }
 
@@ -146,7 +126,7 @@ public class Main {
         @SubscribeEvent
         public static void registerItems(final RegistryEvent.Register<Item> event){
             final IForgeRegistry<Item> registry = event.getRegistry();
-            registry.register(new BlockItem(BLOCK_EXP_ORE,new Item.Properties().group(ItemGroup.COMBAT)).setRegistryName(Main.MODID,"block_exp_ore"));
+            registry.register(new BlockItem(BLOCK_EXP_ORE,new Item.Properties().tab(CreativeModeTab.TAB_COMBAT)).setRegistryName(Main.MODID,"block_exp_ore"));
         }
 
     }
