@@ -2,19 +2,26 @@ package mod.krevik.expore;
 
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import net.minecraft.data.BuiltinRegistries;
-import net.minecraft.data.worldgen.Features;
+import net.minecraft.data.worldgen.biome.Biomes;
+import net.minecraft.data.worldgen.features.FeatureUtils;
+import net.minecraft.data.worldgen.features.OreFeatures;
+import net.minecraft.data.worldgen.placement.OrePlacements;
+import net.minecraft.data.worldgen.placement.PlacementUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
+import net.minecraft.world.level.levelgen.placement.*;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.world.BiomeGenerationSettingsBuilder;
 import net.minecraftforge.event.RegistryEvent;
@@ -31,7 +38,6 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fmlserverevents.FMLServerStartingEvent;
 import net.minecraftforge.registries.IForgeRegistry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -60,8 +66,17 @@ public class Main {
     public static int maximum_Exp_From_Ore = ConfigHandler.MAX_ORE_EXP.get();
     public static int maximum_Ore_Height = ConfigHandler.MAX_ORE_HEIGHT.get();
     public static boolean should_Ore_Generate = ConfigHandler.SHOULD_GENERATE_ORE.get();
-    public static final ImmutableList<OreConfiguration.TargetBlockState> EXP_ORE_TARGET_LIST = ImmutableList.of(OreConfiguration.target(OreConfiguration.Predicates.STONE_ORE_REPLACEABLES, BLOCK_EXP_ORE.defaultBlockState()), OreConfiguration.target(OreConfiguration.Predicates.DEEPSLATE_ORE_REPLACEABLES, BLOCK_EXP_ORE.defaultBlockState()));
-    public static final ConfiguredFeature<?, ?> EXP_ORE_FEATURE = Feature.ORE.configured(new OreConfiguration(EXP_ORE_TARGET_LIST, Vein_Size)).rangeUniform(VerticalAnchor.bottom(), VerticalAnchor.belowTop(maximum_Ore_Height)).squared().count(veins_Per_Chunk);
+    public static final List<OreConfiguration.TargetBlockState> ORE_EXP_TARGET_LIST = Lists.newArrayList(OreConfiguration.target(OreFeatures.STONE_ORE_REPLACEABLES, BLOCK_EXP_ORE.defaultBlockState()), OreConfiguration.target(OreFeatures.STONE_ORE_REPLACEABLES, BLOCK_EXP_ORE.defaultBlockState()));
+    public static final ConfiguredFeature<?, ?> EXP_ORE_FEATURE = Feature.ORE.configured(new OreConfiguration(ORE_EXP_TARGET_LIST, Vein_Size));
+    public static final PlacedFeature PLACED_EXP_ORE = PlacementUtils.register("exp_ore:exp_ore", EXP_ORE_FEATURE.placed(commonOrePlacement(veins_Per_Chunk, HeightRangePlacement.triangle(VerticalAnchor.absolute(-64), VerticalAnchor.absolute(maximum_Ore_Height)))));
+
+    private static List<PlacementModifier> orePlacement(PlacementModifier p_195347_, PlacementModifier p_195348_) {
+        return List.of(p_195347_, InSquarePlacement.spread(), p_195348_, BiomeFilter.biome());
+    }
+
+    private static List<PlacementModifier> commonOrePlacement(int p_195344_, PlacementModifier p_195345_) {
+        return orePlacement(CountPlacement.of(p_195344_), p_195345_);
+    }
 
     public static void registerConfiguredFeatures() {
         Registry<ConfiguredFeature<?, ?>> registry = BuiltinRegistries.CONFIGURED_FEATURE;
@@ -80,21 +95,13 @@ public class Main {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::doClientStuff);
 
         MinecraftForge.EVENT_BUS.register(this);
-        forgeBus.addListener(EventPriority.HIGH, this::bindFeatureToBiomes);
     }
 
     public void setup(final FMLCommonSetupEvent event)
     {
         event.enqueueWork(() -> {
-            Main.registerConfiguredFeatures();
+            OreGeneration.registerFeatures();
         });
-    }
-
-    @SubscribeEvent
-    public void bindFeatureToBiomes(final BiomeLoadingEvent event){
-        if(Main.should_Ore_Generate) {
-            event.getGeneration().addFeature(GenerationStep.Decoration.UNDERGROUND_ORES, EXP_ORE_FEATURE);
-        }
     }
 
 
@@ -108,10 +115,6 @@ public class Main {
 
 
     private void doClientStuff(final FMLClientSetupEvent event) {
-    }
-
-    @SubscribeEvent
-    public static void onServerStarting(FMLServerStartingEvent event) {
     }
 
     @Mod.EventBusSubscriber(bus= Mod.EventBusSubscriber.Bus.MOD)
