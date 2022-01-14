@@ -11,7 +11,7 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 public class ForgeEventSubscriber {
     @SubscribeEvent(priority=EventPriority.HIGH)
     public static void onBiomeLoading(BiomeLoadingEvent event) {
-        if(Main.should_Ore_Generate){
+        if(ConfigHandler.should_generate_ore.get()){
             event.getGeneration().getFeatures(Decoration.UNDERGROUND_ORES).add(() -> OreGeneration.EXPORE_SMALL_PLACED);
             event.getGeneration().getFeatures(Decoration.UNDERGROUND_ORES).add(() -> OreGeneration.EXPORE_SMALL_PLACED_FRACTION);
         }

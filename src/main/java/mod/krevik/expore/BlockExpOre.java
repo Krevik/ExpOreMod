@@ -23,6 +23,6 @@ public class BlockExpOre extends OreBlock {
 
     @Override
     public int getExpDrop(BlockState state, net.minecraft.world.level.LevelReader reader, BlockPos pos, int fortune, int silktouch) {
-        return silktouch == 0 ? UniformInt.of(Main.minimum_Exp_From_Ore, Main.maximum_Exp_From_Ore).sample(RANDOM) : 0;
+        return silktouch == 0 ? UniformInt.of(ConfigHandler.min_ore_exp.get(), ConfigHandler.max_ore_exp.get()).sample(RANDOM) : 0;
     }
 }

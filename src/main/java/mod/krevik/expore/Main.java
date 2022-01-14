@@ -38,6 +38,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.registries.IForgeRegistry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -60,41 +61,23 @@ public class Main {
     public static final String VERSION = "@VERSION@";
 
     public static final Block BLOCK_EXP_ORE = new BlockExpOre();
-    public static int veins_Per_Chunk = ConfigHandler.VEINS_PER_CHUNK.get();
-    public static int Vein_Size = ConfigHandler.ORE_SIZE.get();
-    public static int minimum_Exp_From_Ore = ConfigHandler.MIN_ORE_EXP.get();
-    public static int maximum_Exp_From_Ore = ConfigHandler.MAX_ORE_EXP.get();
-    public static int maximum_Ore_Height = ConfigHandler.MAX_ORE_HEIGHT.get();
-    public static boolean should_Ore_Generate = ConfigHandler.SHOULD_GENERATE_ORE.get();
-    public static final List<OreConfiguration.TargetBlockState> ORE_EXP_TARGET_LIST = Lists.newArrayList(OreConfiguration.target(OreFeatures.STONE_ORE_REPLACEABLES, BLOCK_EXP_ORE.defaultBlockState()), OreConfiguration.target(OreFeatures.STONE_ORE_REPLACEABLES, BLOCK_EXP_ORE.defaultBlockState()));
-    public static final ConfiguredFeature<?, ?> EXP_ORE_FEATURE = Feature.ORE.configured(new OreConfiguration(ORE_EXP_TARGET_LIST, Vein_Size));
-    public static final PlacedFeature PLACED_EXP_ORE = PlacementUtils.register("exp_ore:exp_ore", EXP_ORE_FEATURE.placed(commonOrePlacement(veins_Per_Chunk, HeightRangePlacement.triangle(VerticalAnchor.absolute(-64), VerticalAnchor.absolute(maximum_Ore_Height)))));
 
-    private static List<PlacementModifier> orePlacement(PlacementModifier p_195347_, PlacementModifier p_195348_) {
-        return List.of(p_195347_, InSquarePlacement.spread(), p_195348_, BiomeFilter.biome());
-    }
-
-    private static List<PlacementModifier> commonOrePlacement(int p_195344_, PlacementModifier p_195345_) {
-        return orePlacement(CountPlacement.of(p_195344_), p_195345_);
-    }
-
-    public static void registerConfiguredFeatures() {
-        Registry<ConfiguredFeature<?, ?>> registry = BuiltinRegistries.CONFIGURED_FEATURE;
-        Registry.register(registry, new ResourceLocation(Main.MODID, "exp_ore"), EXP_ORE_FEATURE);
-    }
 
     public Main() {
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ConfigHandler.SPEC);
 
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
-        modEventBus.addListener(this::setup);
 
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::enqueueIMC);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::processIMC);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::doClientStuff);
 
         MinecraftForge.EVENT_BUS.register(this);
+        modEventBus.addListener(this::setup);
+
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ConfigLoader.SERVER_CONFIG);
+        ConfigLoader.loadConfig(ConfigLoader.SERVER_CONFIG, FMLPaths.CONFIGDIR.get().resolve("exp_ore-common.toml"));
+
     }
 
     public void setup(final FMLCommonSetupEvent event)

@@ -58,13 +58,13 @@ public class OreGeneration {
         EXPORE_TARGET_BLOCKS = ImmutableList.of(OreConfiguration.target(OreFeatures.STONE_ORE_REPLACEABLES, Main.BLOCK_EXP_ORE.defaultBlockState()),
                 OreConfiguration.target(OreFeatures.DEEPSLATE_ORE_REPLACEABLES, Main.BLOCK_EXP_ORE.defaultBlockState()));
 
-        EXPORE_SMALL = buildConfigured(EXPORE_TARGET_BLOCKS, Main.Vein_Size,  0.5F);
+        EXPORE_SMALL = buildConfigured(EXPORE_TARGET_BLOCKS, ConfigHandler.ore_size.get(),  0.5F);
 
         Registry.register(BuiltinRegistries.CONFIGURED_FEATURE, new ResourceLocation(Main.MODID, "exp_ore"), EXPORE_SMALL);
 
         // Uses fractions to try and better imitate vanilla's ore spawning
-        HeightRangePlacement aPlacement = buildPlacement(Main.maximum_Ore_Height);
-        EXPORE_SMALL_PLACED = buildFeature(EXPORE_SMALL, Main.veins_Per_Chunk, 1, aPlacement);
+        HeightRangePlacement aPlacement = buildPlacement(ConfigHandler.max_ore_height.get());
+        EXPORE_SMALL_PLACED = buildFeature(EXPORE_SMALL, ConfigHandler.veins_per_chunk.get(), 1, aPlacement);
         EXPORE_SMALL_PLACED_FRACTION = EXPORE_SMALL.placed(commonOrePlacement(0, aPlacement));
 
         Registry.register(BuiltinRegistries.PLACED_FEATURE, new ResourceLocation(Main.MODID, "exp_ore"), EXPORE_SMALL_PLACED);

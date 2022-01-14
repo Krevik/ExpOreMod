@@ -7,27 +7,35 @@ import net.minecraftforge.fml.config.ModConfig;
 import org.apache.commons.lang3.tuple.Pair;
 
 public class ConfigHandler {
-    public static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
-    public static ForgeConfigSpec SPEC = null;
-    public static final ForgeConfigSpec.ConfigValue<Boolean> SHOULD_GENERATE_ORE;
-    public static final ForgeConfigSpec.ConfigValue<Integer> ORE_SIZE;
-    public static final ForgeConfigSpec.ConfigValue<Integer> VEINS_PER_CHUNK;
-    public static final ForgeConfigSpec.ConfigValue<Integer> MIN_ORE_EXP;
-    public static final ForgeConfigSpec.ConfigValue<Integer> MAX_ORE_EXP;
-    public static final ForgeConfigSpec.ConfigValue<Integer> MAX_ORE_HEIGHT;
+    public static ForgeConfigSpec.BooleanValue should_generate_ore;
+    public static ForgeConfigSpec.IntValue ore_size;
+    public static ForgeConfigSpec.IntValue veins_per_chunk;
+    public static ForgeConfigSpec.IntValue min_ore_exp;
+    public static ForgeConfigSpec.IntValue max_ore_exp;
+    public static ForgeConfigSpec.IntValue max_ore_height;
 
-    public ConfigHandler() {
-    }
+    public static void init(ForgeConfigSpec.Builder builder) {
+        builder.comment("Note that almost all config changes require a server restart and/or a full minecraft restart.");
+        builder.push("exp_ore");
 
-    static {
-        BUILDER.push("Exp Ore Block Generation Configs");
-        SHOULD_GENERATE_ORE = BUILDER.define("Should generate ore at all", true);
-        ORE_SIZE = BUILDER.define("Vein size", 8);
-        MAX_ORE_HEIGHT = BUILDER.define("Maximum height at which the ore can generate", 128);
-        VEINS_PER_CHUNK = BUILDER.define("Maximal amount of veins per chunk", 32);
-        MIN_ORE_EXP = BUILDER.define("Minimum exp from ore", 40);
-        MAX_ORE_EXP = BUILDER.define("Maximum exp from ore", 225);
-        BUILDER.pop();
-        SPEC = BUILDER.build();
+        should_generate_ore = builder
+                .comment("Spawn exp ore in overworld? Default = true")
+                .define("should_generate_ore", true);
+        ore_size = builder
+                .comment("Max vein size. Default = 5")
+                .defineInRange("ore_size", 5, 1, 100);
+        veins_per_chunk = builder
+                .comment("How many vein clusters should be generated per chunk. Default = 10")
+                .defineInRange("veins_per_chunk", 10, 1, 100);
+        min_ore_exp = builder
+                .comment("How much exp should give 1 ore block (minimum). Default = 40")
+                .defineInRange("min_ore_exp", 40, 0, Integer.MAX_VALUE);
+        max_ore_exp = builder
+                .comment("How much exp should give 1 ore block (maximum). Default = 245")
+                .defineInRange("max_ore_exp", 245, 1, Integer.MAX_VALUE);
+        max_ore_height = builder
+                .comment("Maximum height at which ore can be found. Default = 80")
+                .defineInRange("max_ore_height", 80, -50, 255);
+        builder.pop();
     }
 }
